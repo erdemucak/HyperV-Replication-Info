@@ -1,0 +1,15 @@
+#In this section, set a variables
+$server = @("hypervnode1","hypervnode2","hypervnode3","hypervnode4")
+
+#select object in Item and  run with Invoke-Command 
+ForEach($item in $server){
+Invoke-Command -ComputerName $server -ScriptBlock { Get-VMReplication | Select-Object VMName,State,Health,LastReplicationTime,ReplicaServer } | ConvertTo-Html -title "Hyper-V Replication Status"  | Out-File -FilePath C:\ScheduledTasks\HyperVReplications\report\replications.html }
+cd C:\ScheduledTasks\HyperVReplications\report
+
+#server count of the replicaitons
+$repcount= cat replications.html | Measure-Object | %{ $_.Count-10 }
+
+#Smtp Mail Settings
+Send-MailMessage -Attachments "C:\ScheduledTasks\HyperVReplications\report\replications.html" -From replica@hostname.com -To receipents@hostname.com -Body "Replikasyonu Yapilan Sunucu Sayisi: $repcount " -Subject "Hyper-V Replication Status" -SmtpServer "Server Ip Address"
+
+exit
